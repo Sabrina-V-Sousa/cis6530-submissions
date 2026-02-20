@@ -20,12 +20,12 @@ Samples were obtained from public malware repositories and sandbox platforms, in
 - VirusTotal (hash-based reference only)
 - Vendor threat reports (ESET, Kaspersky, Mandiant, CrowdStrike)
 
-Only samples referenced in publicly documented APT activity were included.
+Only samples referenced in publicly documented APT activity sites were included.
 
 Samples were excluded if:
 - Attribution to an APT group was ambiguous
 - Source did not provide verifiable indicators
-- File was not retrievable from a trusted repository
+- File was not retrievable from a trusted, ethical and opensource repository
 - Sample was redundant with an existing payload
 
 Process:
@@ -42,10 +42,10 @@ Process:
      ex:  
      /Executable Malware/  
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/Blacktech-G0098-payload1/  
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SHA256-<hash>.zip  
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SHA256-\<hash\>.zip  
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;metadata.txt  
 
-Each sample has metadata for:
+Each sample has metadata to allow for reproducability:
 - APT group name
 - File type (Executable Malware / Other Payload)
 - Hash (MD5 or SHA256)
