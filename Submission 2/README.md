@@ -26,11 +26,11 @@ Installation for Linux Machines:
   `git lfs install`
 
 ## Collection Methodology 
-Samples were obtained from public malware repositories and sandbox platforms, including:
-- MalwareBazaar
-- Hybrid Analysis
-- VirusTotal (hash-based reference only)
-- Vendor threat reports (ESET, Kaspersky, Mandiant, CrowdStrike)
+Samples were obtained from public malware repositories, including:
+- MalwareBazaar - sample downloads
+- VirusTotal - hash-based reference only
+- MITRE doumentation - hash, name, and behaviour reference only
+- Vendor threat reports such as ESET, Kaspersky, Mandiant, CrowdStrike - hash, name, and behaviour reference only
 
 Only samples referenced in publicly documented APT activity sites were included.
 
@@ -41,27 +41,29 @@ Samples were excluded if:
 - Sample was redundant with an existing payload
 
 The following groups in group set 4 had either no open source malware samples or only had redundant malware samples that were already downloaded for another group:
-- G0122 Silent Librarian
-- G0024 Putter Panda
-- G0106 Rocke
-- G0128 ZIRCONIUM
-- G0017 DragonOK
-- G0031 Dust Storm
-- G0079 DarkHydrus
-- G0072 Honeybee
-- G0071 Orangeworm
+- G0122 Silent Librarian (none opensource)
+- G0024 Putter Panda (none opensource)
+- G0106 Rocke (none opensource)
+- G0128 ZIRCONIUM (none opensource)
+- G0017 DragonOK (only had PlugX and PoisonIvy which were already listed for another group)
+- G0031 Dust Storm (only had Gh0st Rat and PoisonIvy which were already listed for another group)
+- G0079 DarkHydrus (only had Mimikatz and Cobalt Strike which were already listed for another group)
+- G0072 Honeybee (none opensource)
+- G0071 Orangeworm (none opensource)
 
-Process:
-1. Identified APT groups from public threat intelligence sources.
+A few malwares are the same malwares but in different file formats and were included to have more diverse payload file types.
+
+### Process:
+1. Identified APT group's malware usage from MITRE and other public threat intelligence sources.
 2. Extracted file hashes and indicators from vendor reports.
-3. Located corresponding samples in public malware repositories.
+3. Located corresponding samples in public malware repositories by malware name, domain, hash, or group association.
 4. Verified linkage using:
    - Hash matching
-   - Behavioral similarity (C2 patterns, persistence, execution flow)
+   - Behavioral similarity (TTPs, C2 patterns, persistence, execution flow)
    - Campaign references where available
 5. Labeled each sample using:
    - APT group name
-   - File hash (MD5/SHA256)  
+   - File hash (SHA256)  
      ex:  
      /Executable Malware/  
        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/Blacktech-G0098/  
@@ -71,7 +73,8 @@ Process:
 
 Each sample has metadata to allow for reproducability:
 - APT group name
-- File type (Executable Malware / Other Payload)
+- File type (Executable / Other Payload)
 - Hash (SHA256)
-- Source reference (URL or report name)
+- Link to download sample
+- Link for more information on malware or group's usage of malware
 - Campaign name when available
