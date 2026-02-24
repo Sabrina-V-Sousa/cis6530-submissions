@@ -1,6 +1,6 @@
 ## Safety Notice
 
-**WARNING: This folder contains real malicious payloads collected for academic analysis only.**
+### WARNING: This folder contains real malicious payloads collected for academic analysis only.
 
 Do NOT execute these files on a host machine.
 All samples must be handled in an isolated malware analysis environment (e.g., virtual machine with no network or controlled simulation network).
@@ -12,6 +12,18 @@ All samples must be handled in an isolated malware analysis environment (e.g., v
 - Use snapshots before analysis.
 - Do not upload samples to public file-sharing sites.
 - Samples are intended for static analysis (strings, hashing, disassembly) and controlled sandbox execution (Hybrid Analysis / Any.Run / local VM)
+
+## Requirements for Downloading Repository
+#### This repository contains large files and requires the use of Git Large File Storage (LFS)  
+Download here: https://git-lfs.com/ 
+
+Installation for Linux Machines:  
+- execute in the terminal  
+  `tar -xvf git-lfs-linux-amd64-v3.7.1.tar.gz`  
+- in the created folder *git-lfs-v3.7.1* run  
+  `sudo ./install.sh`  
+- then  
+  `git lfs install`
 
 ## Collection Methodology 
 Samples were obtained from public malware repositories and sandbox platforms, including:
@@ -28,6 +40,17 @@ Samples were excluded if:
 - File was not retrievable from a trusted, ethical and opensource repository
 - Sample was redundant with an existing payload
 
+The following groups in group set 4 had either no open source malware samples or only had redundant malware samples that were already downloaded for another group:
+- G0122 Silent Librarian
+- G0024 Putter Panda
+- G0106 Rocke
+- G0128 ZIRCONIUM
+- G0017 DragonOK
+- G0031 Dust Storm
+- G0079 DarkHydrus
+- G0072 Honeybee
+- G0071 Orangeworm
+
 Process:
 1. Identified APT groups from public threat intelligence sources.
 2. Extracted file hashes and indicators from vendor reports.
@@ -42,7 +65,7 @@ Process:
      ex:  
      /Executable Malware/  
        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/Blacktech-G0098/  
-         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/malware1/  
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/malware name/  
            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\<hash\>.exe  
            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;metadata.txt  
 
