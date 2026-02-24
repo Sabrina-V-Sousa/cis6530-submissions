@@ -24,6 +24,8 @@ Installation for Linux Machines:
   `sudo ./install.sh`  
 - then  
   `git lfs install`
+- Passwords to decrypt the .7z folders are
+  `infected`
 
 ## Collection Methodology 
 Samples were obtained from public malware repositories, including:
