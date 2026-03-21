@@ -1,0 +1,156 @@
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+
+import seaborn as sns
+
+'''
+CIS 6530 Assignment Submission 4
+Supervised Machine Learning Model for Classifying Opcodes
+by Sabrina Sousa and Adam Orchard
+
+Uses opcodes in currentfolder/Opcodes/
+Classifiers: SVM, KNN (k=3), Decision Tree
+Features: 1-gram and 2-gram OpCodes
+'''
+
+# setup directories --------------------------------------------------
+
+BASE_DIR = os.path.join(os.getcwd(), "ExtractedOpcodes")
+
+os.makedirs("results/confusion_matrices", exist_ok=True)
+
+# clear metrics file at start
+open("results/metrics.txt", "w").close()
+
+
+# load data --------------------------------------------------
+
+opcode_data = []
+opcode_count = 0
+
+print('Extracting Opcode File Data From:', BASE_DIR)
+for apt_group in os.listdir(BASE_DIR):
+
+    apt_path = os.path.join(BASE_DIR, apt_group)
+    
+    if not os.path.isdir(apt_path):
+        continue
+    
+    if opcode_count == 1:
+        # previous apt_group had only 1 entry, copy data for minimum 2 groups per class in train_test_split
+        opcode_data.append(opcode_data[len(opcode_data) - 1])
+
+    opcode_count = 0
+    for file in os.listdir(apt_path):
+
+        if file.endswith(".opcode"):
+
+            file_path = os.path.join(apt_path, file)
+            # extract opcodes
+            with open(file_path) as f:
+                opcodes = f.read().split()
+
+            # join extracted opcodes as a string
+            opcode_string = " ".join(opcodes)
+            opcode_data.append({
+                "label": apt_group,
+                "opcode": opcode_string
+            })
+
+            opcode_count = opcode_count + 1
+
+if opcode_count == 1:
+    # last apt_group had only 1 entry, copy data for minimum 2 groups per class in train_test_split
+    opcode_data.append(opcode_data[len(opcode_data) - 1])
+
+# data extraction --------------------------------------------------
+
+df = pd.DataFrame(opcode_data)
+
+df.to_csv("dataset.csv", index=False)
+
+print("Dataset shape:", df.shape)
+print(df["label"].value_counts())
+
+# train and test ML models --------------------------------------------------
+
+X = df["opcode"]
+y = df["label"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.4, #must be >= number of classes, for our dataset 61 * 0.4 rounds to 25 which is equal to number of classes
+    stratify=y,
+    random_state=42
+)
+
+models = {
+    "SVM": SVC(kernel="linear"),
+    "KNN3": KNeighborsClassifier(n_neighbors=3),
+    "KNN4": KNeighborsClassifier(n_neighbors=4),
+    "KNN5": KNeighborsClassifier(n_neighbors=5),
+    "DecisionTree": DecisionTreeClassifier(random_state=42)
+}
+
+def plot_cm(cm, labels, title, filename):
+    plt.figure(figsize=(8,6))
+    sns.heatmap(cm, annot=True, fmt="d",
+                xticklabels=labels,
+                yticklabels=labels)
+    plt.title(title)
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.savefig(filename)
+    plt.close()
+
+class_labels = sorted(y.unique())
+
+for n in [1, 2]:
+
+    print(f"\n===== {n}-GRAM =====")
+
+    vectorizer = CountVectorizer(ngram_range=(n, n))
+
+    X_train_vec = vectorizer.fit_transform(X_train)
+    X_test_vec = vectorizer.transform(X_test)
+
+    for name, model in models.items():
+
+        print(f"\nTraining {name}")
+
+        model.fit(X_train_vec, y_train)
+        y_pred = model.predict(X_test_vec)
+
+        acc = accuracy_score(y_test, y_pred)
+        report = classification_report(y_test, y_pred)
+        cm = confusion_matrix(y_test, y_pred)
+
+        print("Accuracy:", acc)
+        print(report)
+
+        with open("results/metrics.txt", "a") as f:
+            f.write(f"\n{'-'*50}\n")
+            f.write(f"\n{name} ({n}-gram)\n")
+            f.write(f"\n{'-'*50}\n")
+            f.write(f"Accuracy: {acc}\n")
+            f.write(report + "\n")
+            f.write("Confusion Matrix:\n")
+            f.write(str(cm) + "\n")
+
+        labels = sorted(y.unique())
+        filename = f"results/confusion_matrices/{name}_{n}gram.png"
+
+        plot_cm(cm, labels, f"{name} ({n}-gram)", filename)
+
+print("\nDone. Results saved to results/")
