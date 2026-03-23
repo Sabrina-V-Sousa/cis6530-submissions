@@ -21,7 +21,7 @@ Supervised Machine Learning Model for Classifying Opcodes
 by Sabrina Sousa and Adam Orchard
 
 Uses opcodes in currentfolder/Opcodes/
-Classifiers: SVM, KNN (k=3), Decision Tree
+Classifiers: SVM, KNN (k=3, 4, 5), Decision Tree
 Features: 1-gram and 2-gram OpCodes
 '''
 
