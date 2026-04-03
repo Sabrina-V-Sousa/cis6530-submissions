@@ -15,13 +15,13 @@ This folder contains the extracted opcodes for the malicious executables and the
 Required packages: os, sys, numpy, pandas, matplotlib, itertools, tensorflow, sklearn, seaborn, openpyxl
 
 Input requirements: have opcode files sorted in group subfolders in folder 'ExtractedOpcodes' for training as follows 
-     /ExtractedOpcodes/  
-       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Group 1/  
-         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sample1.opcode  
-           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sample2.opcode  
-       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Group 2/  
-         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sample3.opcode  
-           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sample4.opcode  
+    /ExtractedOpcodes/  
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Group 1/  
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sample1.opcode  
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sample2.opcode  
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Group 2/  
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sample3.opcode  
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sample4.opcode  
 
 The 'ExtractedOpcodes' folder should be in the current working directory at the same level as the scripts.
 
@@ -33,8 +33,9 @@ This creates dataset.csv
 For creating the deep convolutional neural network and classifying opcodes run:
 `python3 deep_learning_classification.py`  
 
-This creates results folder with `metrics.txt`, `metrics.xlsx`, and `confusion_matrix_CNN.png`
+This creates `results` folder for the main deep convolutional neural network model with `metrics.txt`, `metrics.xlsx`, and `confusion_matrix_CNN.png`
 
+It also creates similar files in a subfolder in results of the cross-validation results which tests sub-samples in `results/cross_validation`
 
 ## Requirements for Downloading Repository
 #### This repository contains large files and requires the use of Git Large File Storage (LFS)  
