@@ -1,0 +1,135 @@
+
+--------------------------------------------------
+
+Fold 1/5
+
+--------------------------------------------------
+Accuracy: 0.36363636363636365
+                         precision    recall  f1-score   support
+
+Abused Legitimate Tools       0.00      0.00      0.00         1
+               Backdoor       0.00      0.00      0.00         3
+             Downloader       0.00      0.00      0.00         2
+            Infostealer       0.00      0.00      0.00         0
+                    RAT       0.36      1.00      0.53         4
+                Spyware       0.00      0.00      0.00         1
+
+               accuracy                           0.36        11
+              macro avg       0.06      0.17      0.09        11
+           weighted avg       0.13      0.36      0.19        11
+
+Confusion Matrix:
+[[0 0 0 0 1 0]
+ [0 0 0 0 3 0]
+ [0 0 0 0 2 0]
+ [0 0 0 0 0 0]
+ [0 0 0 0 4 0]
+ [0 0 0 0 1 0]]
+
+--------------------------------------------------
+
+Fold 2/5
+
+--------------------------------------------------
+Accuracy: 0.1
+                         precision    recall  f1-score   support
+
+Abused Legitimate Tools       0.11      1.00      0.20         1
+               Backdoor       0.00      0.00      0.00         3
+             Downloader       0.00      0.00      0.00         1
+            Infostealer       0.00      0.00      0.00         1
+                    RAT       0.00      0.00      0.00         3
+                Spyware       0.00      0.00      0.00         1
+
+               accuracy                           0.10        10
+              macro avg       0.02      0.17      0.03        10
+           weighted avg       0.01      0.10      0.02        10
+
+Confusion Matrix:
+[[1 0 0 0 0 0]
+ [3 0 0 0 0 0]
+ [1 0 0 0 0 0]
+ [1 0 0 0 0 0]
+ [2 0 1 0 0 0]
+ [1 0 0 0 0 0]]
+
+--------------------------------------------------
+
+Fold 3/5
+
+--------------------------------------------------
+Accuracy: 0.3
+                         precision    recall  f1-score   support
+
+Abused Legitimate Tools       0.00      0.00      0.00         1
+               Backdoor       0.00      0.00      0.00         3
+             Downloader       0.00      0.00      0.00         1
+            Infostealer       0.00      0.00      0.00         1
+                    RAT       0.30      1.00      0.46         3
+                Spyware       0.00      0.00      0.00         1
+
+               accuracy                           0.30        10
+              macro avg       0.05      0.17      0.08        10
+           weighted avg       0.09      0.30      0.14        10
+
+Confusion Matrix:
+[[0 0 0 0 1 0]
+ [0 0 0 0 3 0]
+ [0 0 0 0 1 0]
+ [0 0 0 0 1 0]
+ [0 0 0 0 3 0]
+ [0 0 0 0 1 0]]
+
+--------------------------------------------------
+
+Fold 4/5
+
+--------------------------------------------------
+Accuracy: 0.1
+                         precision    recall  f1-score   support
+
+Abused Legitimate Tools       0.00      0.00      0.00         1
+               Backdoor       0.00      0.00      0.00         3
+             Downloader       0.10      1.00      0.18         1
+            Infostealer       0.00      0.00      0.00         1
+                    RAT       0.00      0.00      0.00         3
+                Spyware       0.00      0.00      0.00         1
+
+               accuracy                           0.10        10
+              macro avg       0.02      0.17      0.03        10
+           weighted avg       0.01      0.10      0.02        10
+
+Confusion Matrix:
+[[0 0 1 0 0 0]
+ [0 0 3 0 0 0]
+ [0 0 1 0 0 0]
+ [0 0 1 0 0 0]
+ [0 0 3 0 0 0]
+ [0 0 1 0 0 0]]
+
+--------------------------------------------------
+
+Fold 5/5
+
+--------------------------------------------------
+Accuracy: 0.3
+                         precision    recall  f1-score   support
+
+Abused Legitimate Tools       0.00      0.00      0.00         0
+               Backdoor       0.30      1.00      0.46         3
+             Downloader       0.00      0.00      0.00         2
+            Infostealer       0.00      0.00      0.00         1
+                    RAT       0.00      0.00      0.00         3
+                Spyware       0.00      0.00      0.00         1
+
+               accuracy                           0.30        10
+              macro avg       0.05      0.17      0.08        10
+           weighted avg       0.09      0.30      0.14        10
+
+Confusion Matrix:
+[[0 0 0 0 0 0]
+ [0 3 0 0 0 0]
+ [0 2 0 0 0 0]
+ [0 1 0 0 0 0]
+ [0 3 0 0 0 0]
+ [0 1 0 0 0 0]]
